@@ -16,6 +16,17 @@ function checkFileExists(file) {
     .catch(() => false);
 }
 
+router.get("/footage/getUnsplit", async function (req, res) {
+    const pendingSplitFootage = await model.Footage.findOne({
+        framesSplit: false,
+        uploaded: true,
+    });
+    return res.status(200).send({
+        status: true,
+        footage: pendingSplitFootage        
+    });
+});
+
 router.get("/footage/:footageFilename", async function (req, res) {
   const fullFilePath = `${appDir}/media/footage/${req.params.footageFilename}`;
   console.log(`Testing if file: ${fullFilePath} exists`);
@@ -30,6 +41,8 @@ router.get("/footage/:footageFilename", async function (req, res) {
     });
   }
 });
+
+
 
 router.post(
   "/upload",
