@@ -1,0 +1,33 @@
+{
+  "name": "alper",
+  "version": "1.0.0",
+  "description": "ANPR NVR for vehicles",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheOkoNetwork/ALPER.git"
+  },
+  "author": "Gregory Oakley-Stevenson <gregory@okonetwork.org.uk>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheOkoNetwork/ALPER/issues"
+  },
+  "homepage": "https://github.com/TheOkoNetwork/ALPER#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.2",
+    "express-fileupload": "^1.3.1",
+    "module-alias": "^2.2.2",
+    "mongoose": "^6.2.0",
+    "server-timing": "^3.3.1",
+    "uuid": "^8.3.2"
+  },
+  "_moduleAliases": {
+    "@models": "models",
+    "@routes": "routes",
+    "@src": "src"
+  }
+}
