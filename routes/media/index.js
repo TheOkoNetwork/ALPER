@@ -27,6 +27,25 @@ router.get("/footage/getUnsplit", async function (req, res) {
     });
 });
 
+router.get("/footage/:footageId/splitComplete", async function (req, res) {
+  const footage = await model.Footage.findOne({
+      _id: req.params.footageId,
+  });
+  if (!footage) {
+    return res.status(404).send({
+      status: false,
+      message: "Footage not found",
+    });
+  }
+  await model.Footage.updateOne(
+    { _id: footage._id },
+    { $set: { framesSplit: true } }
+  );
+  return res.status(200).send({
+      status: true,        
+  });
+});
+
 router.get("/footage/:footageFilename", async function (req, res) {
   const fullFilePath = `${appDir}/media/footage/${req.params.footageFilename}`;
   console.log(`Testing if file: ${fullFilePath} exists`);
@@ -82,6 +101,63 @@ router.post(
       status: true,
       message: "File uploaded",
       footageId: footageDoc._id,
+    });
+  }
+);
+
+
+
+router.post(
+  "/frame/upload/:footageId/:frameNumber/:frameTimestamp",
+  fileUpload({
+    limits: { fileSize: 250 * 1024 * 1024 },
+  }),
+  async function (req, res) {
+    if (!req.files || Object.keys(req.files).length === 0) {
+      res.status(400).send("No files were uploaded.");
+      return;
+    }
+    console.log("Got file upload");
+    const file = req.files.upload;
+
+    const footage = await model.Footage.findOne({
+      _id: req.params.footageId,
+    });
+    if (!footage) {
+      return res.status(404).send({
+        status: false,
+        message: "Footage not found",
+      });
+    }
+    const uploadAsFilename = uuidv4() + "_" + file.name;
+    const uploadPath = `${appDir}/media/frames/${uploadAsFilename}`;
+
+    const frameDoc = await model.Frame.create({
+      footage: footage._id,
+      filename: uploadAsFilename,
+      frameNumber: Number(req.params.frameNumber),
+      frameTimestamp: Number(req.params.frameTimestamp),
+      uploadFilename: file.name,
+      uploaded: false,
+      framesSplit: false,
+    });
+
+    // Use the mv() method to place the file somewhere on your server
+    await file.mv(uploadPath);
+
+    console.log(`File uploaded to: ${uploadPath}`);
+    await model.Frame.updateOne(
+      { _id: frameDoc._id },
+      {
+        $set: {
+          uploaded: true,
+        },
+      }
+    );
+    res.send({
+      status: true,
+      message: "File uploaded",
+      frameId: frameDoc._id,
     });
   }
 );

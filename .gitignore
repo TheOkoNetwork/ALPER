@@ -105,4 +105,5 @@ dist
 
 
 #footage
-media/footage/*
+media/footage/*.mp4
+media/frames/*.jpeg
