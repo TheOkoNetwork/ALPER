@@ -27,6 +27,23 @@ router.get("/frames/getUnprocessed", async function (req, res) {
   });
 });
 
+router.get("/frames/:frameId/noResults", async function (req, res) {
+  const frame = await model.Frame.findOne({
+      _id: req.params.frameId,
+  });
+  if (!frame) {
+    return res.status(404).send({
+      status: false,
+      message: "Frame not found",
+    });
+  }
+  await model.Frame.deleteOne({
+    _id: req.params.frameId,
+  })
+  return res.status(200).send({
+      status: true,        
+  });
+});
 router.get("/footage/getUnsplit", async function (req, res) {
     const pendingSplitFootage = await model.Footage.findOne({
         framesSplit: false,
