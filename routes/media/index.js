@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+router.use(express.json({ limit: "250mb" }));
 
 const fileUpload = require("express-fileupload");
 let model = require("@models");
@@ -40,6 +41,28 @@ router.get("/frames/:frameId/noResults", async function (req, res) {
   await model.Frame.deleteOne({
     _id: req.params.frameId,
   })
+  return res.status(200).send({
+      status: true,        
+  });
+});
+router.post("/frames/:frameId/results", async function (req, res) {
+  const frame = await model.Frame.findOne({
+      _id: req.params.frameId,
+  });
+  if (!frame) {
+    return res.status(404).send({
+      status: false,
+      message: "Frame not found",
+    });
+  }
+  await model.Frame.updateOne({
+    _id: req.params.frameId,
+  }, {
+    $set: {
+      results: req.body,
+      processed: true,
+      },
+      });
   return res.status(200).send({
       status: true,        
   });

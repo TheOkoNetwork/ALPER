@@ -10,6 +10,18 @@ let frameSchema = new Schema({
     uploadFilename: {type:String,required:true},
     uploaded: {type:Boolean,required:true}, 
     processed: { type: Boolean, default: false },
+    results: {
+        confidence: {type: mongoose.Decimal128, required: true},
+        plate: {type: String, required: true},
+        coordinates: [{
+            x: {type: mongoose.Decimal128, required: true},
+            y: {type: mongoose.Decimal128, required: true},
+        }],
+        candidates: [{
+            plate: {type: String, required: true},
+            confidence: {type: mongoose.Decimal128, required: true},
+        }],
+    }
 });
 
 module.exports = frameSchema;
