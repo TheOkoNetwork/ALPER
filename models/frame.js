@@ -9,6 +9,7 @@ let frameSchema = new Schema({
     filename: {type:String,required:true},
     uploadFilename: {type:String,required:true},
     uploaded: {type:Boolean,required:true}, 
+    processed: { type: Boolean, default: false },
 });
 
 module.exports = frameSchema;

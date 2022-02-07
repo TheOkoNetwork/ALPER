@@ -27,6 +27,8 @@ router.get("/footage/getUnsplit", async function (req, res) {
     });
 });
 
+
+
 router.get("/footage/:footageId/splitComplete", async function (req, res) {
   const footage = await model.Footage.findOne({
       _id: req.params.footageId,
@@ -60,7 +62,20 @@ router.get("/footage/:footageFilename", async function (req, res) {
     });
   }
 });
-
+router.get("/frames/:frameFilename", async function (req, res) {
+  const fullFilePath = `${appDir}/media/frames/${req.params.frameFilename}`;
+  console.log(`Testing if file: ${fullFilePath} exists`);
+  if (await checkFileExists(fullFilePath)) {
+    console.log(`file: ${fullFilePath} exists`);
+    return res.sendFile(fullFilePath);
+  } else {
+    console.log(`file: ${fullFilePath} does NOT exist`);
+    return res.status(404).send({
+      status: false,
+      message: "Not found",
+    });
+  }
+});
 
 
 router.post(
@@ -161,4 +176,16 @@ router.post(
     });
   }
 );
+
+
+router.get("/frames/getUnprocessed", async function (req, res) {
+  const framesPendingProcessing = await model.Frame.findOne({
+      uploaded: true,
+      processed: false,
+  });
+  return res.status(200).send({
+      status: true,
+      frame: framesPendingProcessing        
+  });
+});
 module.exports = router;
