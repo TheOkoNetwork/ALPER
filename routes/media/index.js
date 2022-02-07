@@ -16,6 +16,17 @@ function checkFileExists(file) {
     .catch(() => false);
 }
 
+router.get("/frames/getUnprocessed", async function (req, res) {
+  const framesPendingProcessing = await model.Frame.findOne({
+      uploaded: true,
+      processed: false,
+  });
+  return res.status(200).send({
+      status: true,
+      frame: framesPendingProcessing        
+  });
+});
+
 router.get("/footage/getUnsplit", async function (req, res) {
     const pendingSplitFootage = await model.Footage.findOne({
         framesSplit: false,
@@ -177,15 +188,4 @@ router.post(
   }
 );
 
-
-router.get("/frames/getUnprocessed", async function (req, res) {
-  const framesPendingProcessing = await model.Frame.findOne({
-      uploaded: true,
-      processed: false,
-  });
-  return res.status(200).send({
-      status: true,
-      frame: framesPendingProcessing        
-  });
-});
 module.exports = router;
