@@ -25,7 +25,7 @@ let frameSchema = new Schema({
     uploadFilename: {type:String,required:true},
     uploaded: {type:Boolean,required:true}, 
     processed: { type: Boolean, default: false },
-    results: [{ type: resultsSchema, default: [] }],
+    results: [{ type: resultsSchema }],
 });
 
 module.exports = frameSchema;
