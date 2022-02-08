@@ -18,19 +18,31 @@ function checkFileExists(file) {
 }
 
 router.get("/frames/getUnprocessed", async function (req, res) {
-  const framesPendingProcessing = await model.Frame.findOne({
-      uploaded: true,
-      processed: false,
-  });
+  const framesPendingProcessing = await model.Frame.aggregate([
+    {
+      $match: {
+        uploaded: true,
+        processed: false,
+      },
+    },
+    { $sample: { size: 1 } },
+  ]);
+  if (framesPendingProcessing.length == 0) {
+    res.status(200).json({
+      status: false,
+      message: "No frames to process",
+    });
+  }
+
   return res.status(200).send({
-      status: true,
-      frame: framesPendingProcessing        
+    status: true,
+    frame: framesPendingProcessing[0],
   });
 });
 
 router.get("/frames/:frameId/noResults", async function (req, res) {
   const frame = await model.Frame.findOne({
-      _id: req.params.frameId,
+    _id: req.params.frameId,
   });
   if (!frame) {
     return res.status(404).send({
@@ -40,14 +52,14 @@ router.get("/frames/:frameId/noResults", async function (req, res) {
   }
   await model.Frame.deleteOne({
     _id: req.params.frameId,
-  })
+  });
   return res.status(200).send({
-      status: true,        
+    status: true,
   });
 });
 router.post("/frames/:frameId/results", async function (req, res) {
   const frame = await model.Frame.findOne({
-      _id: req.params.frameId,
+    _id: req.params.frameId,
   });
   if (!frame) {
     return res.status(404).send({
@@ -59,7 +71,8 @@ router.post("/frames/:frameId/results", async function (req, res) {
   const results = [];
 
   //UK Plate regex
-  const plateRegex=/(?<Current>^[A-Z]{2}[0-9]{2}[A-Z]{3}$)|(?<Prefix>^[A-Z][0-9]{1,3}[A-Z]{3}$)|(?<Suffix>^[A-Z]{3}[0-9]{1,3}[A-Z]$)|(?<DatelessLongNumberPrefix>^[0-9]{1,4}[A-Z]{1,2}$)|(?<DatelessShortNumberPrefix>^[0-9]{1,3}[A-Z]{1,3}$)|(?<DatelessLongNumberSuffix>^[A-Z]{1,2}[0-9]{1,4}$)|(?<DatelessShortNumberSufix>^[A-Z]{1,3}[0-9]{1,3}$)|(?<DatelessNorthernIreland>^[A-Z]{1,3}[0-9]{1,4}$)|(?<DiplomaticPlate>^[0-9]{3}[DX]{1}[0-9]{3}$)/g
+  const plateRegex =
+    /(?<Current>^[A-Z]{2}[0-9]{2}[A-Z]{3}$)|(?<Prefix>^[A-Z][0-9]{1,3}[A-Z]{3}$)|(?<Suffix>^[A-Z]{3}[0-9]{1,3}[A-Z]$)|(?<DatelessLongNumberPrefix>^[0-9]{1,4}[A-Z]{1,2}$)|(?<DatelessShortNumberPrefix>^[0-9]{1,3}[A-Z]{1,3}$)|(?<DatelessLongNumberSuffix>^[A-Z]{1,2}[0-9]{1,4}$)|(?<DatelessShortNumberSufix>^[A-Z]{1,3}[0-9]{1,3}$)|(?<DatelessNorthernIreland>^[A-Z]{1,3}[0-9]{1,4}$)|(?<DiplomaticPlate>^[0-9]{3}[DX]{1}[0-9]{3}$)/g;
 
   for (const detectedPlate of rawResults) {
     const plate = {
@@ -73,41 +86,42 @@ router.post("/frames/:frameId/results", async function (req, res) {
       plate.candidates.push({
         plate: plateCandidate.plate,
         confidence: Number(plateCandidate.confidence),
-        patternMatched: plateCandidate.plate.search(plateRegex) >= 0
+        patternMatched: plateCandidate.plate.search(plateRegex) >= 0,
       });
     }
     results.push(plate);
-  };
+  }
 
   //@TODO this in a transactionth
-  await model.Frame.updateOne({
-    _id: req.params.frameId,
-  }, {
-    $set: {
-      results: results,
-      processed: true,
+  await model.Frame.updateOne(
+    {
+      _id: req.params.frameId,
+    },
+    {
+      $set: {
+        results: results,
+        processed: true,
       },
-      });
+    }
+  );
   return res.status(200).send({
-      status: true,        
+    status: true,
   });
 });
 router.get("/footage/getUnsplit", async function (req, res) {
-    const pendingSplitFootage = await model.Footage.findOne({
-        framesSplit: false,
-        uploaded: true,
-    });
-    return res.status(200).send({
-        status: true,
-        footage: pendingSplitFootage        
-    });
+  const pendingSplitFootage = await model.Footage.findOne({
+    framesSplit: false,
+    uploaded: true,
+  });
+  return res.status(200).send({
+    status: true,
+    footage: pendingSplitFootage,
+  });
 });
-
-
 
 router.get("/footage/:footageId/splitComplete", async function (req, res) {
   const footage = await model.Footage.findOne({
-      _id: req.params.footageId,
+    _id: req.params.footageId,
   });
   if (!footage) {
     return res.status(404).send({
@@ -120,7 +134,7 @@ router.get("/footage/:footageId/splitComplete", async function (req, res) {
     { $set: { framesSplit: true } }
   );
   return res.status(200).send({
-      status: true,        
+    status: true,
   });
 });
 
@@ -152,7 +166,6 @@ router.get("/frames/:frameFilename", async function (req, res) {
     });
   }
 });
-
 
 router.post(
   "/upload",
@@ -195,8 +208,6 @@ router.post(
     });
   }
 );
-
-
 
 router.post(
   "/frame/upload/:footageId/:frameNumber/:frameTimestamp",
