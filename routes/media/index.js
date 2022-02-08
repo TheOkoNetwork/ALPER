@@ -77,7 +77,7 @@ router.post("/frames/:frameId/results", async function (req, res) {
   for (const detectedPlate of rawResults) {
     const plate = {
       plate: detectedPlate.plate,
-      patternMatched: detectedPlate.plate.search(plateRegex) > 0,
+      patternMatched: detectedPlate.plate.search(plateRegex) >= 0,
       confidence: Number(detectedPlate.confidence),
       coordinates: detectedPlate.coordinates,
       candidates: [],
