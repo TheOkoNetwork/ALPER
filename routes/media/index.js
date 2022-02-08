@@ -74,6 +74,9 @@ router.post("/frames/:frameId/results", async function (req, res) {
   const plateRegex =
     /(?<Current>^[A-Z]{2}[0-9]{2}[A-Z]{3}$)|(?<Prefix>^[A-Z][0-9]{1,3}[A-Z]{3}$)|(?<Suffix>^[A-Z]{3}[0-9]{1,3}[A-Z]$)|(?<DatelessLongNumberPrefix>^[0-9]{1,4}[A-Z]{1,2}$)|(?<DatelessShortNumberPrefix>^[0-9]{1,3}[A-Z]{1,3}$)|(?<DatelessLongNumberSuffix>^[A-Z]{1,2}[0-9]{1,4}$)|(?<DatelessShortNumberSufix>^[A-Z]{1,3}[0-9]{1,3}$)|(?<DatelessNorthernIreland>^[A-Z]{1,3}[0-9]{1,4}$)|(?<DiplomaticPlate>^[0-9]{3}[DX]{1}[0-9]{3}$)/g;
 
+
+  //@TODO this in a transaction
+  const platesMatchingPattern=[];
   for (const detectedPlate of rawResults) {
     const plate = {
       plate: detectedPlate.plate,
@@ -82,17 +85,26 @@ router.post("/frames/:frameId/results", async function (req, res) {
       coordinates: detectedPlate.coordinates,
       candidates: [],
     };
-    for (const plateCandidate of detectedPlate.candidates) {
-      plate.candidates.push({
-        plate: plateCandidate.plate,
-        confidence: Number(plateCandidate.confidence),
-        patternMatched: plateCandidate.plate.search(plateRegex) >= 0,
-      });
+    for (const detectedPlateCandidate of detectedPlate.candidates) {
+      const plateCandidate={
+        plate: detectedPlateCandidate.plate,
+        confidence: Number(detectedPlateCandidate.confidence),
+        patternMatched: detectedPlateCandidate.plate.search(plateRegex) >= 0,
+      }
+      if (plateCandidate.patternMatched) {
+        if (platesMatchingPattern.indexOf(plateCandidate.plate) === -1) {
+          platesMatchingPattern.push(plateCandidate.plate);
+        };
+      };
+      plate.candidates.push(plateCandidate);
     }
     results.push(plate);
   }
 
-  //@TODO this in a transactionth
+  if (platesMatchingPattern.length > 0) {
+    console.log(`Got ${platesMatchingPattern.length} plates matching pattern`);
+    console.log(platesMatchingPattern);
+  };
   await model.Frame.updateOne(
     {
       _id: req.params.frameId,
