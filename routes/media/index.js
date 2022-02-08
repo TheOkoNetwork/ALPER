@@ -55,11 +55,36 @@ router.post("/frames/:frameId/results", async function (req, res) {
       message: "Frame not found",
     });
   }
+  const rawResults = req.body;
+  const results = [];
+
+  //UK Plate regex
+  const plateRegex=/(?<Current>^[A-Z]{2}[0-9]{2}[A-Z]{3}$)|(?<Prefix>^[A-Z][0-9]{1,3}[A-Z]{3}$)|(?<Suffix>^[A-Z]{3}[0-9]{1,3}[A-Z]$)|(?<DatelessLongNumberPrefix>^[0-9]{1,4}[A-Z]{1,2}$)|(?<DatelessShortNumberPrefix>^[0-9]{1,3}[A-Z]{1,3}$)|(?<DatelessLongNumberSuffix>^[A-Z]{1,2}[0-9]{1,4}$)|(?<DatelessShortNumberSufix>^[A-Z]{1,3}[0-9]{1,3}$)|(?<DatelessNorthernIreland>^[A-Z]{1,3}[0-9]{1,4}$)|(?<DiplomaticPlate>^[0-9]{3}[DX]{1}[0-9]{3}$)/g
+
+  for (const detectedPlate of rawResults) {
+    const plate = {
+      plate: detectedPlate.plate,
+      patternMatched: detectedPlate.plate.search(plateRegex) > 0,
+      confidence: Number(detectedPlate.confidence),
+      coordinates: detectedPlate.coordinates,
+      candidates: [],
+    };
+    for (const plateCandidate of detectedPlate.candidates) {
+      plate.candidates.push({
+        plate: plateCandidate.plate,
+        confidence: Number(plateCandidate.confidence),
+        patternMatched: plateCandidate.plate.search(plateRegex) >= 0
+      });
+    }
+    results.push(plate);
+  };
+
+  //@TODO this in a transactionth
   await model.Frame.updateOne({
     _id: req.params.frameId,
   }, {
     $set: {
-      results: req.body,
+      results: results,
       processed: true,
       },
       });

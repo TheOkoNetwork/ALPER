@@ -13,6 +13,7 @@ let frameSchema = new Schema({
     results: {
         confidence: {type: mongoose.Decimal128, required: true},
         plate: {type: String, required: true},
+        patternMatched: {type: Boolean, required: true},
         coordinates: [{
             x: {type: mongoose.Decimal128, required: true},
             y: {type: mongoose.Decimal128, required: true},
@@ -20,6 +21,7 @@ let frameSchema = new Schema({
         candidates: [{
             plate: {type: String, required: true},
             confidence: {type: mongoose.Decimal128, required: true},
+            patternMatched: {type: Boolean, required: true},
         }],
     }
 });
