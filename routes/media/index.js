@@ -109,7 +109,7 @@ router.post("/frames/:frameId/results", async function (req, res) {
         plate: plate,
       });
       if (!existingPlate) {
-        await model.DetectedPlate.insertOne({
+        await model.DetectedPlate.create({
           plate: plate,
         });       
       };
