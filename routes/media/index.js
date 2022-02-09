@@ -104,6 +104,16 @@ router.post("/frames/:frameId/results", async function (req, res) {
   if (platesMatchingPattern.length > 0) {
     console.log(`Got ${platesMatchingPattern.length} plates matching pattern`);
     console.log(platesMatchingPattern);
+    for (const plate of platesMatchingPattern) {
+      const existingPlate = await model.DetectedPlate.findOne({
+        plate: plate,
+      });
+      if (!existingPlate) {
+        await model.DetectedPlate.insertOne({
+          plate: plate,
+        });       
+      };
+    };
   };
   await model.Frame.updateOne(
     {
