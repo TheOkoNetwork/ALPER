@@ -43,6 +43,7 @@ const initApp = async () => {
 
 
 app.use('/media', require("@routes/media"))
+app.use('/plates', require("@routes/plates"))
 
 app.get('/', async (req, res) => {
   res.json({
